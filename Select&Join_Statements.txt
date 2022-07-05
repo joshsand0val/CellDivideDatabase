@@ -1,0 +1,138 @@
+--1. Select Inmate First Name and Last Name, Charge id, and Sentence where sentence length is greater than 5 
+
+SELECT namefirst, namelast, chargeid, sentence
+FROM inmate i JOIN charge c on i.inmateid = c.inmateid
+WHERE sentence > 5;
+
+--2. Select employee id and employee name for all employees in department with id 3 
+
+SELECT employeeid, ename FROM employee
+WHERE DEPTID = 3;
+
+--3. SELECT Employee name and Department Name for all employees in department with id 2 
+
+SELECT  ename, deptname
+FROM employee e JOIN department d 
+ON e.deptid = d.deptid
+WHERE e.deptid = 3;
+
+--4.SELECT all items in locker for visitors with last name Kim 
+
+SELECT namefirst, namelast, item
+FROM Visitor v JOIN lockerinventory i 
+ON v.visitorid = i.visitorid
+WHERE namelast = 'Kim';
+
+--5. SELECT names of all visitors, name of inmate, apptid, for all non private visits 
+
+SELECT i.appointmentid, v.namefirst, v.namelast, ii.namefirst, ii.namelast
+FROM visitor v JOIN inattendance i
+ON v.visitorid = i.visitorid JOIN nonprivatev n 
+ON i.appointmentid = n.appointmentid JOIN visitrequest vr
+ON n.appointmentid = vr.visitreqid JOIN inmate ii
+ON vr.inmateid = ii.inmateid
+order by appointmentid;
+
+--6. SELECT Manager name, dept ID, and Dept title for each department 
+
+SELECT ename as EmployeeName, e.managerid as employeeid, deptname
+FROM departmentlead dl JOIN department d 
+ON dl.deptid = d.deptid JOIN employee e
+ON d.deptid = e.deptid
+WHERE dl.managerid = e.employeeid;
+
+--7. Select the name of the gaurd on duty and the #hours who has the most hours in a single shift 
+
+Select ename, hourson
+FROM guardonduty g JOIN employee e
+ON g.employeeid = e.employeeid
+ORDER BY hourson DESC
+FETCH FIRST 1 ROW ONLY;
+
+--8. Display all appointment id's and the location names associated with the appointments for inmate with ID = 2 
+
+SELECT appointmentid, wing
+FROM locationv l JOIN visit v 
+ON l.locationid = v.locationid
+WHERE inmateid = 2;
+
+--9. Display Employee name, appt id, and inmate name for all private appointments
+
+Select ename as employeename , appointmentid, namefirst as InmateFirst, namelast as InmateLast
+FROM privatev v join employee e 
+ON v.employeeid = e.employeeid JOIN visitrequest vr 
+ON v.appointmentid = vr.visitreqid JOIN inmate i 
+ON vr.inmateid = i.inmateid;
+
+--10. Display name and total sentence for each inmate high to low 
+
+SELECT namefirst, namelast, SUM(sentence)
+FROM charge i JOIN inmate c 
+ON i.inmateid = c.inmateid
+GROUP BY namefirst, namelast
+order by SUM(sentence) DESC;
+
+--11. Which inmate has the lowest sentence 
+
+SELECT namefirst, namelast, SUM(sentence)
+FROM charge i JOIN inmate c 
+ON i.inmateid = c.inmateid
+GROUP BY namefirst, namelast
+order by SUM(sentence) ASC
+FETCH FIRST 1 ROW ONLY;
+
+--12. Display a rank based on Descending total sentencing 
+
+SELECT namefirst, namelast,   RANK() OVER (ORDER BY tsentence DESC) as rankk
+FROM
+(
+SELECT namefirst, namelast, SUM(sentence) as tsentence
+FROM ( 
+    SELECT nameFirst, Namelast, chargename, sentence
+    FROM charge i JOIN inmate c 
+    ON i.inmateid = c.inmateid
+)
+GROUP BY nameFirst, NameLast
+);
+
+--13. Display inmate name of inamate with the lowest rank and highest sentence
+
+SELECT * FROM(
+SELECT namefirst, namelast,   RANK() OVER (ORDER BY tsentence DESC) as rankk
+FROM
+(
+SELECT namefirst, namelast, SUM(sentence) as tsentence
+FROM ( 
+    SELECT nameFirst, Namelast, chargename, sentence
+    FROM charge i JOIN inmate c 
+    ON i.inmateid = c.inmateid
+)
+GROUP BY nameFirst, NameLast
+))
+WHERE rankk = 1;
+
+--14. Display Visitor ID who has knife in storage
+
+Select visitorid, item 
+FROM lockerinventory
+WHERE item = 'Knife';
+
+--15. What is the name of the visitor associated with the knife in storage 
+
+Select namefirst, namelast, l.visitorid, item
+FROM lockerinventory l JOIN visitor v 
+ON l.visitorid = v.visitorid
+WHERE item = 'Knife';
+
+
+
+
+
+
+
+
+
+
+
+
+
